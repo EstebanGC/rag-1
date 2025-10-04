@@ -69,6 +69,14 @@ class SpecializedAgent:
                         -Return clear formats with high possibilities of action
 
                         ORGANIZATION: """,
-                        
-                    }
+                                        "capabilities": [
+                                            "Information structuration",
+                                            "Project planning",
+                                            "Schedule creation",
+                                            "Task management",
+                                            "Priorization"
+                                        ]
+                                    },
+                                    "advanced_"
+
         
