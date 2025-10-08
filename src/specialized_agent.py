@@ -5,7 +5,7 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 
 from config.settings import OLLAMA_CONFIG
-from .knowledge_base import KnowledgeBasee
+from .knowledge_base import KnowledgeBase
 
 logger = logging.getLogger(__name__)
 
@@ -13,23 +13,24 @@ class SpecializedAgent:
     def __init__(self, specialization: str = "research_analyst"):
         self.specialization = specialization
         self.llm = Ollama(
-            model = OLLAMA_CONFIG["models"]["llm"],
-            base_url = OLLAMA_CONFIG["base_url"],
-            timeout = OLLAMA_CONFIG["timeout"],
-            temperature = 0.3,
-            num_threads = 4
+            model=OLLAMA_CONFIG["models"]["llm"],
+            base_url=OLLAMA_CONFIG["base_url"],
+            timeout=OLLAMA_CONFIG["timeout"],
+            temperature=0.3,
+            num_threads=4
             )
         
-        self.knowledge_base = Knowledge_base()
+        self.knowledge_base = KnowledgeBase()
         self.role_templates = self._get_role_templates()
         self.qa_chain = None
 
 
-    def _get_role_templates() -> Dict[str, Any]:
+    def _get_role_templates(self) -> Dict[str, Any]:
         """"Define specific specialized roles"""
         return {
             "research_analyst": {
-        "prompt_template": """You are a specialized research analyst and information synthesis.
+                "name": "Research Analyst",
+                "prompt_template": """You are a specialized research analyst and information synthesis.
         DOCUMENTARY CONTEXT: 
         {context}
 
@@ -44,7 +45,7 @@ class SpecializedAgent:
         -If there's missing information, indicate the limitations
 
         ANALYSIS: """, 
-                        "capabiities": [
+                        "capabilities": [
                             "Documentary analysys",
                             "Information synthesis",
                             "Insights extraction",
@@ -53,7 +54,7 @@ class SpecializedAgent:
                         ]
                     },
                     
-                    "project_organyzer": {
+                    "project_organizer": {
                         "name": "Project Organyzer",
                         "prompt_template": """You are a specialist in orgnayzing and project management.
         DOCUMENTARY CONTEXT: 
@@ -75,7 +76,7 @@ class SpecializedAgent:
                             "Project planning",
                             "Schedule creation",
                             "Task management",
-                            "Priorization"
+                            "Priorizatition"
                         ]
                     },
                     
@@ -158,7 +159,7 @@ class SpecializedAgent:
                     chain_type = "stuff",
                     retriever = retriever,
                     chain_type_kwargs = {"prompt": prompt},
-                    return_source_documets = True
+                    return_source_documents = True
                 )
 
                 logger.info(f"{role_config['name']} initializing")
@@ -181,10 +182,10 @@ class SpecializedAgent:
             role_config = self.role_templates.get(self.specialization)
 
 
-            soures = []
+            sources = []
             for doc in result.get("source_documents", []):
                 source_name = doc.metadata.get("source", "Unknown")
-                souces.append({
+                sources.append({
                     "source": source_name,
                     "preview": doc.page_content[:150] + "..."
                 })
@@ -217,7 +218,7 @@ class SpecializedAgent:
     
     def change_specialization(self, new_specialization: str) -> bool:
         """Change the specialized agent"""
-        if new_specialization in self._get_role_templates:
+        if new_specialization in self.role_templates:
             self.specialization = new_specialization
             return self.initialize()
         return False
