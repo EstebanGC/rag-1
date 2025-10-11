@@ -20,7 +20,7 @@ class DocumentProcessor:
             '.pdf': PyPDFLoader,
             '.txt': TextLoader,
             '.docx': UnstructuredWordDocumentLoader,
-            'doc': UnstructuredWordDocumentLoader
+            '.doc': UnstructuredWordDocumentLoader
         }
 
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -29,7 +29,7 @@ class DocumentProcessor:
             length_function=len
         )
 
-    def load_single_documents(self, file_path: Path) -> Optional[List[Document]]:
+    def load_single_document(self, file_path: Path) -> Optional[List[Document]]:
         try: 
             extension = file_path.suffix.lower()
             if extension in self.loaders:

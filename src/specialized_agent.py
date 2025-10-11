@@ -76,7 +76,7 @@ class SpecializedAgent:
                             "Project planning",
                             "Schedule creation",
                             "Task management",
-                            "Priorizatition"
+                            "Prioritization"
                         ]
                     },
                     
