@@ -1,26 +1,32 @@
 import sys
-import os
+import logging 
+import argparse
 from pathlib import Path
 
-ROOT_DIR = Path(__file__).parent.parent
-sys.path.append(str(ROOT_DIR))
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s -%(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+src_path = Path(__file__).parent
+sys.path.append(str(src_path))
 
-try: 
-    from config.settings import OLLAMA_CONFIG, DATA_PATHS
-    from utils.helpers import setup_enviroment
-except ImportError as e:
-    print(f"Importing Error: {e}")
-    print("Make sure you're running from src folder")
-    sys.exit(1)
+from config.settings import OLLAMA_CONFIG, DATA_PATHS
+from document_processor import DocumentProcessor
+from knowledge_base import KnowledgeBase
+from specialized_agent import SpecializedAgent
 
-def main():
-    """Main function"""
-    print("Initializing RAG")
+def knowledge_base():
+    logger.info("Building knowledge base ...")
 
-    setup_enviroment()
+    processor = DocumentProcessor()
+    documents = processor.process_documents()
 
-    print("Enviroment configured correctly")
-    print(f"LLM Model: {OLLAMA_CONFIG['models']['llm']}")
+    if not documents: 
+        logger.error("No documents found to process")
+        print("Place your files in data/raw/")
+        return false
 
-if __name__ == "__main__":
-    main()
+
+
+
