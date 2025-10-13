@@ -36,6 +36,21 @@ def knowledge_base():
     logger.error("Error handling knowledge base")
     return False 
 
+def ask_question(question: str, specialization: str = "research_analyst"):
+    agent = SpecializedAgent(specialization)
+    if agent.initialize():
+        result = agent.ask_question(question)
+
+        print(f"\n {result['role']} Response: ")
+        print(f"{result['answer']}")
+
+        if result['sources']:
+            print(f"\n Sources ({len(result['sources'])}):")
+            for i, source, in enumarate(result['sources'], 1):
+                print(f"{i}. {source['source']}")
+                print(f" Preview: {source['preview']}\n")
+
+        else: print("First build the knowledge base with: python src/main.py --build")
 
 
 
