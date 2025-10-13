@@ -25,7 +25,16 @@ def knowledge_base():
     if not documents: 
         logger.error("No documents found to process")
         print("Place your files in data/raw/")
-        return false
+        return False
+    
+    knowledge_base = KnowledgeBase()
+    if knowledge_base.create_knowledge_base(documents):
+        if knowledge_base.save_knowledge_base():
+            logger.info("Knowledge base built successfully!")
+            return True
+    
+    logger.error("Error handling knowledge base")
+    return False 
 
 
 
