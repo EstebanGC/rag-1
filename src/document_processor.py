@@ -89,7 +89,4 @@ class DocumentProcessor:
             print(f"\n Summary: ")
             print(f"Total chunks: {len(chunks)}")
             print(f"First chunk: {chunks[0].page_content[:100]}...")
-            print(f"Metadata: {chunk[0].metadata}")
-    
-
-        
+            print(f"Metadata: {chunks[0].metadata}")
