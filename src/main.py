@@ -14,7 +14,7 @@ sys.path.append(str(src_path))
 from config.settings import OLLAMA_CONFIG, DATA_PATHS
 from document_processor import DocumentProcessor
 from knowledge_base import KnowledgeBase
-from specialized_agent import SpecializedAgent
+from dual_agent import DualAgent
 
 def build_knowledge_base():
     logger.info("Building knowledge base ...")
@@ -36,12 +36,13 @@ def build_knowledge_base():
     logger.error("Error handling knowledge base")
     return False 
 
-def ask_question(question: str, specialization: str = "research_analyst"):
-    agent = SpecializedAgent(specialization)
-    if agent.initialize():
-        result = agent.ask_question(question)
+def ask_question(question: str, agent: str = "auto"):
+    agent_handler = DualAgent()
 
-        print(f"\n {result['role']} Response: ")
+    if agent_handler.initialize():
+        result = agent_handler.ask_question(question, agent)
+
+        print(f"\n {result['agent']} ({result['model']}): ")
         print(f"{result['answer']}")
 
         if result['sources']:
@@ -53,30 +54,34 @@ def ask_question(question: str, specialization: str = "research_analyst"):
         else: print("First build the knowledge base with: python src/main.py --build")
 
 def interactive_chat():
-    agent = SpecializedAgent()
-    specializations = agent.list_specializations()
+    agent_handler = DualAgent()
+    agents = agent_handler.list_agents()
 
-    print("\n Available Specializations: ")
-    for i, spec in enumerate(specializations, 1):
-        print(f"{i}, {spec['name']} - {', '.join(spec['capabilities'][:2])}...")
+    print("\n Available Agents: ")
+    for i, agent in enumerate(agents, 1):
+        print(f"{i}. {agent['name']}")
+        print(f" Model: {agent['model']}")
+        print(f" Skills: {', '.join(agent['capabilities'][":3"])}...\n")
 
         try: 
-            choice = int(input("\nSelect specialization (1-4): ")) - 1
-            if 0 <= choice < len(specializations):
-                selected_spec = specializations[choice]["id"]
-            else: 
-                selected_spec = "research_analyst"
-        except:
-            selected_spec = "research_analyst"
+            choice = int(input("\nSelect agent (1-2) or Enter for auto-detection: ") or "0") 
+            if choice == 1:
+                selected_agent = "coder"
+            elif choice ==2: 
+                selected_agent = "assistant"
+            else:
+                selected_agent = "auto"
 
-        agent = SpecializedAgent(selected_spec)
-        if not agent.initialize():
+        except: 
+            selected_agent = "auto"
+
+        if not agent_handler.initialize():
             print("First build knowledge base with: python src/main.py -- build")
             return 
         
-        role_info = agent.role_templates[selected_spec]
-        print(f"\n {role_info['name']} ready!")
-        print(f"💡 I can help with: {', '.join(role_info['capabilities'])}")
+        agent_info = agent_handler.agents.get(selected_agent, agent_handler.agents['assistant'])
+        print(f"\n {agent_info['name']} ready!")
+        print(f" I can help with: {', '.join(agent_info['capabilities'][:3])}")
         print("\n" + "=" * 50)
 
         while True:
@@ -88,10 +93,10 @@ def interactive_chat():
 
             if user_input:
                 print("Thinking...")
-                result = agent.ask_question(user_input)
+                result = agent_handler.ask_question(user_input, selected_agent)
 
                 if result["success"]:
-                    print(f"\n Answer:")
+                    print(f"\n Answer ({result['model']}):")
                     print(result["answer"])
 
                     if result["sources"]:
@@ -101,34 +106,35 @@ def interactive_chat():
                         print(f"Error: {result['answer']}")
 
 def main():
-    parser = argparse.ArgumentParser(description = "RAG University System")
+    parser = argparse.ArgumentParser(description = "Dual Agent RAG System")
     parser.add_argument("--build", action="store_true", help="Build knowledge base")
-    parser.add_argument("--ask", "a", help="Ask a specific question")
-    parser.add_argument("--specialization", "-s", default="research_analyst",
-                        help="Specialization: resarch_analyst , project_organizer, " \
-                        "advanced_summarizer, code_analyzer")
+    parser.add_argument("--ask", "-a", help="Ask a specific question")
+    parser.add_argument("--agent", "-g", default="auo",
+                        help="Agent: coder (Mistral 7B), assistant (Genma 2B), auto " )
     parser.add_argument("--chat", "-c", action="store_true", help="Interactive chat mode")
 
     args = parser.parse_args()
 
-    logger.info("RAG University System - Starting ...")
-    logger.info(f"LLM Model: {OLLAMA_CONFIG['models']['llm']}")
+    logger.info("Dual Agent RAG System - Starting ...")
+    logger.info(f"coder: {OLLAMA_CONFIG['models']['coder']} (Mistral 7B)")
+    logger.info(f"coder: {OLLAMA_CONFIG['models']['assistant']} (Genma 7B)")
     logger.info(f"Documents: {DATA_PATHS['raw_documents']}")
 
     if args.build:
         build_knowledge_base()
     elif args.ask:
-        ask_question(args.ask, args.specialization)
+        ask_question(args.ask, args.agents)
     elif args.chat:
         interactive_chat()
     else:
         print("Usage: python src/main.py [OPTIONS]")
         print("\n Examples:")
         print(" python src/main.py --build")
-        print(" python src/main.py --ask \"Explain derivaties\" --specialization resarch_analyst")
+        print(" python src/main.py --ask \"Write a Python function\" --agent-coder")
+        print(" python src/main.py --ask \"Organize this document\" --agent-assistant")
         print( " python src/main.py --chat")
 
-    if __name__ == "__main":
+    if __name__ == "__main__":
         main()
               
 
