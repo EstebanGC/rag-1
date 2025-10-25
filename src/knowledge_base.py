@@ -4,7 +4,7 @@ from pathlib import Path
 
 from langchain.schema import Document
 from langchain_community.vectorstores import FAISS
-from langchain_ollama import OllamaEmbeddings
+from langchain_community.embeddings import OllamaEmbeddings  # ← CAMBIO AQUÍ
 from config.settings import DATA_PATHS, OLLAMA_CONFIG
 
 logger = logging.getLogger(__name__)
@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 class KnowledgeBase:
     def __init__(self):
         self.embeddings = OllamaEmbeddings(
-        model=OLLAMA_CONFIG["models"]["embeddings"],
-        base_url=OLLAMA_CONFIG["base_url"]
-    )      
+            model=OLLAMA_CONFIG["models"]["embeddings"],
+            base_url=OLLAMA_CONFIG["base_url"]
+        )      
         self.vector_store = None
 
     def create_knowledge_base(self, documents: List[Document]) -> bool:

@@ -1,15 +1,10 @@
-import os
 import logging
 from typing import List, Optional
 from pathlib import Path
 
-from langchain_core.documents import Document
-from langchain_community.document_loaders import (
-    PyPDFLoader,
-    TextLoader, 
-    UnstructuredWordDocumentLoader
-)
+from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.document_loaders import TextLoader, PyPDFLoader
 from config.settings import DATA_PATHS, PROCESSING_CONFIG
 
 logger = logging.getLogger(__name__)
@@ -18,9 +13,7 @@ class DocumentProcessor:
     def __init__(self):
         self.loaders = {
             '.pdf': PyPDFLoader,
-            '.txt': TextLoader,
-            '.docx': UnstructuredWordDocumentLoader,
-            '.doc': UnstructuredWordDocumentLoader
+            '.txt': TextLoader
         }
 
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -41,14 +34,13 @@ class DocumentProcessor:
         except Exception as e:
             logger.error(f"Error loading {file_path}: {e}")
             return None
-    
-    def load_all_documents(self) -> List[Document]:
 
+    def load_all_documents(self) -> List[Document]:
         documents = []
         raw_dir = DATA_PATHS["raw_documents"]
 
         if not raw_dir.exists():
-            logger.warning(f"Document not found: {raw_dir}")
+            logger.warning(f"Document directory not found: {raw_dir}")
             return documents
         
         for file_path in raw_dir.iterdir():
@@ -68,7 +60,7 @@ class DocumentProcessor:
         documents = self.load_all_documents()
 
         if not documents:
-            logger.warning("Documents to process not found")
+            logger.warning("No documents to process")
             return []
         
         logger.info(f"Loaded documents: {len(documents)}")
