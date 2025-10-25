@@ -1,11 +1,11 @@
 import logging 
 from typing import Dict, Any, List
-from langchain.llms import Ollama
+from langchain_community.llms import Ollama
 from langchain.prompts import PromptTemplate
-from langchain.chains import retrieval_qa
+from langchain.chains import RetrievalQA
 
 from config.settings import OLLAMA_CONFIG
-from .knowledge_base import KnowledgeBase
+from knowledge_base import KnowledgeBase
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class DualAgent:
 
         self.knowledge_base = KnowledgeBase()
         self.agents = self._setup_agents()
-        self.qa_chain = {}
+        self.qa_chains = {}
 
     def _setup_agents(self) -> Dict[str, Any]:
         """Configure both agents with their specific models"""
@@ -124,7 +124,7 @@ ORGANIZED RESPONSE:""",
                         input_variables=["context", "question"]
                     )
                     
-                    self.qa_chains[agent_id] = retrieval_qa.from_chain_type(
+                    self.qa_chains[agent_id] = RetrievalQA.from_chain_type(
                         llm=config["model"],  
                         chain_type="stuff",
                         retriever=retriever,
@@ -135,7 +135,7 @@ ORGANIZED RESPONSE:""",
                 logger.info("Dual Agent initialized - Mistral 7B + Gemma 2B")
                 return True
         
-        logger.warning("⚠️ Knowledge base not found")
+        logger.warning("Knowledge base not found")
         return False
     
     def ask_question(self, question: str, agent: str = "auto") -> Dict[str, Any]:

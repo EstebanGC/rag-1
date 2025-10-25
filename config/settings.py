@@ -13,7 +13,7 @@ OLLAMA_CONFIG = {
     "timeout": 60.0,
     "models": {
         "coder": "mistral",
-        "assistant": "genma:2b",
+        "assistant": "gemma:2b",
         "embeddings": "nomic-embed-text"
     }
 }

@@ -4,8 +4,7 @@ from pathlib import Path
 
 from langchain.schema import Document
 from langchain_community.vectorstores import FAISS
-from langchain.embeddings import OllamaEmbeddings
-
+from langchain_ollama import OllamaEmbeddings
 from config.settings import DATA_PATHS, OLLAMA_CONFIG
 
 logger = logging.getLogger(__name__)
@@ -13,10 +12,9 @@ logger = logging.getLogger(__name__)
 class KnowledgeBase:
     def __init__(self):
         self.embeddings = OllamaEmbeddings(
-            model = OLLAMA_CONFIG["models"]["embeddings"],
-            base_url= OLLAMA_CONFIG["base_url"],
-            timeout = OLLAMA_CONFIG["timeout"]
-        )
+        model=OLLAMA_CONFIG["models"]["embeddings"],
+        base_url=OLLAMA_CONFIG["base_url"]
+    )      
         self.vector_store = None
 
     def create_knowledge_base(self, documents: List[Document]) -> bool:
@@ -56,7 +54,8 @@ class KnowledgeBase:
             if load_path.exists() and any(load_path.iterdir()):
                 self.vector_store = FAISS.load_local(
                     folder_path=str(load_path),
-                    embeddings=self.embeddings
+                    embeddings=self.embeddings,
+                    allow_dangerous_deserialization=True
                 )
                 logger.info("Knowledge base loaded")
                 return True
@@ -74,6 +73,15 @@ class KnowledgeBase:
         if self.vector_store:
             return self.vector_store.as_retriever(search_kwargs ={"k": k})
         return None
+    
+if __name__ == "__main__":
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    
+    print("🧪 Testing Knowledge Base...")
+    kb = KnowledgeBase()
+    print(f"Knowledge Base initialized")
+    print(f"Embeddings model: {OLLAMA_CONFIG['models']['embeddings']}")
     
     
 

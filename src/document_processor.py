@@ -3,10 +3,10 @@ import logging
 from typing import List, Optional
 from pathlib import Path
 
-from langchain.schema import Document
-from langchain.document_loaders import (
+from langchain_core.documents import Document
+from langchain_community.document_loaders import (
     PyPDFLoader,
-    TextLoader,
+    TextLoader, 
     UnstructuredWordDocumentLoader
 )
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -53,7 +53,7 @@ class DocumentProcessor:
         
         for file_path in raw_dir.iterdir():
             if file_path.is_file() and file_path.suffix.lower() in self.loaders:
-                loaded_docs = self.load_single_documents(file_path)
+                loaded_docs = self.load_single_document(file_path)
                 if loaded_docs:
                     documents.extend(loaded_docs)
                     logger.info(f"Loaded: {file_path.name} ({len(loaded_docs)} documents)")
@@ -77,16 +77,16 @@ class DocumentProcessor:
         chunks = self.split_documents(documents)
         logger.info(f"Chunks created: {len(chunks)}")
         return chunks
-    
-    if __name__ == "__main__":
-        import logging
-        logging.basicConfig(level=logging.INFO)
 
-        processor = DocumentProcessor()
-        chunks = processor.process_documents()
+if __name__ == "__main__":
+    import logging
+    logging.basicConfig(level=logging.INFO)
 
-        if chunks:
-            print(f"\n Summary: ")
-            print(f"Total chunks: {len(chunks)}")
-            print(f"First chunk: {chunks[0].page_content[:100]}...")
-            print(f"Metadata: {chunks[0].metadata}")
+    processor = DocumentProcessor()
+    chunks = processor.process_documents()
+
+    if chunks:
+        print(f"\n Summary: ")
+        print(f"Total chunks: {len(chunks)}")
+        print(f"First chunk: {chunks[0].page_content[:100]}...")
+        print(f"Metadata: {chunks[0].metadata}")

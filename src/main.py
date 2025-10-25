@@ -3,6 +3,8 @@ import logging
 import argparse
 from pathlib import Path
 
+sys.path.append(str(Path(__file__).parent.parent))
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s -%(levelname)s - %(message)s'
@@ -117,13 +119,13 @@ def main():
 
     logger.info("Dual Agent RAG System - Starting ...")
     logger.info(f"coder: {OLLAMA_CONFIG['models']['coder']} (Mistral 7B)")
-    logger.info(f"coder: {OLLAMA_CONFIG['models']['assistant']} (Genma 7B)")
+    logger.info(f"coder: {OLLAMA_CONFIG['models']['assistant']} (Genma 2B)")
     logger.info(f"Documents: {DATA_PATHS['raw_documents']}")
 
     if args.build:
         build_knowledge_base()
     elif args.ask:
-        ask_question(args.ask, args.agents)
+        ask_question(args.ask, args.agent)
     elif args.chat:
         interactive_chat()
     else:
@@ -134,8 +136,8 @@ def main():
         print(" python src/main.py --ask \"Organize this document\" --agent-assistant")
         print( " python src/main.py --chat")
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
               
 
 
