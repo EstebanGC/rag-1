@@ -42,18 +42,31 @@ def ask_question(question: str, agent: str = "auto"):
     agent_handler = DualAgent()
 
     if agent_handler.initialize():
+        print("🔄 Processing your question... (this may take 10-30 seconds)")
         result = agent_handler.ask_question(question, agent)
 
-        print(f"\n {result['agent']} ({result['model']}): ")
-        print(f"{result['answer']}")
+        print(f"🔍 Debug - Result keys: {list(result.keys())}")
+        print(f"🔍 Debug - Success: {result.get('success')}")
 
-        if result['sources']:
-            print(f"\n Sources ({len(result['sources'])}):")
-            for i, source in enumerate(result['sources'], 1):  
-                print(f"{i}. {source['source']}")
-                print(f" Preview: {source['preview']}\n")
+        if result.get('success', False):
+            print(f"\n{'='*50}")
+            print(f"{result['agent']} ({result['model']}):")
+            print(f"{'='*50}")
+            print(f"{result['answer']}")
+            print(f"{'='*50}")
+
+            if result.get('sources'):
+                print(f"\nSources ({len(result['sources'])}):")
+                for i, source in enumerate(result['sources'], 1):  
+                    print(f"{i}. {source['source']}")
+                    print(f"   Preview: {source['preview']}\n")
+            else:
+                print("\n💡 Note: Response from model (no documents used)")
+        else:
+            print(f"\n❌ Error: {result.get('answer', 'Unknown error')}")
+            
     else: 
-        print("First build the knowledge base with: python src/main.py --build")  
+        print("First build the knowledge base with: python src/main.py --build")
 
 def interactive_chat():
     agent_handler = DualAgent()

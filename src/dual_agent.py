@@ -16,8 +16,8 @@ class DualAgent:
             base_url=OLLAMA_CONFIG["base_url"],
             timeout=OLLAMA_CONFIG["timeout"],
             temperature=0.1,
-            num_threads=6,
-            num_gpu=1                           
+            num_predict=2048,  
+            system="You are a senior software engineer specialized in development."
         )
 
         self.assistant_llm = Ollama(
@@ -25,8 +25,8 @@ class DualAgent:
             base_url=OLLAMA_CONFIG["base_url"],
             timeout=OLLAMA_CONFIG["timeout"],
             temperature=0.3,
-            num_threads=4,
-            num_gpu=1
+            num_predict=1024, 
+            system="You are an intelligent and organized personal assistant."
         )
 
         self.knowledge_base = KnowledgeBase()
@@ -135,16 +135,14 @@ ORGANIZED RESPONSE:""",
                 logger.info("Dual Agent initialized - Mistral 7B + Gemma 2B")
                 return True
         
-        logger.warning("Knowledge base not found")
-        return False
+        logger.warning("Knowledge base not found - using direct model responses")
+        return True  # Cambiado a True para permitir respuestas directas
     
     def ask_question(self, question: str, agent: str = "auto") -> Dict[str, Any]:
         """Answer using the appropriate agent"""
+        # Si no hay cadenas QA, usar respuesta directa del modelo
         if not self.qa_chains:
-            return {
-                "answer": "Agent not initialized. Run: python src/main.py --build",
-                "success": False
-            }
+            return self._direct_model_response(question, agent)
         
         # Automatic agent detection
         if agent == "auto":
@@ -184,6 +182,48 @@ ORGANIZED RESPONSE:""",
                 "answer": f"Error: {str(e)}",
                 "success": False
             }
+
+    def _direct_model_response(self, question: str, agent: str) -> Dict[str, Any]:
+        if agent == "auto":
+            agent = self._detect_agent(question)
+        
+        if agent == "coder":
+            llm = self.coder_llm
+            agent_name = self.agents["coder"]["name"]
+            model_name = "Mistral 7B"
+        else:
+            llm = self.assistant_llm
+            agent_name = self.agents["assistant"]["name"]
+            model_name = "Gemma 2B"
+        
+        try:
+            logger.info(f"Starting model response with {model_name}...")
+            enhanced_prompt = f"""You are {agent_name}. Answer the following question clearly and helpfully:
+
+QUESTION: {question}
+
+Please provide a comprehensive and useful response:"""
+            
+            logger.info(f"📤 Sending request to Ollama...")
+            response = llm.invoke(enhanced_prompt)
+            logger.info(f"✅ Received response from Ollama, length: {len(response)}")
+            return {
+                "success": True,
+                "agent": agent_name,
+                "model": model_name,
+                "answer": response,
+                "sources": [],
+                "note": "Response from model (no documents in knowledge base)"
+            }
+        except Exception as e:
+            logger.error(f"Error in direct model response: {e}")
+            return {
+                "success": False,
+                "answer": f"Error: {str(e)}",
+                "agent": "Error",
+                "model": "N/A",
+                "sources": []
+            }
     
     def _detect_agent(self, question: str) -> str:
         """Automatically detect which agent to use based on keywords"""
@@ -215,12 +255,3 @@ ORGANIZED RESPONSE:""",
             }
             for agent_id, config in self.agents.items()
         ]
-
-
-
-
-
-    
-
-
-
