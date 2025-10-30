@@ -16,7 +16,8 @@ class DualAgent:
             base_url=OLLAMA_CONFIG["base_url"],
             timeout=OLLAMA_CONFIG["timeout"],
             temperature=0.1,
-            num_predict=2048,  
+            num_predict=512,  
+            num_gpu=1
             system="You are a senior software engineer specialized in development."
         )
 
@@ -25,7 +26,7 @@ class DualAgent:
             base_url=OLLAMA_CONFIG["base_url"],
             timeout=OLLAMA_CONFIG["timeout"],
             temperature=0.3,
-            num_predict=1024, 
+            num_predict=256, 
             system="You are an intelligent and organized personal assistant."
         )
 
@@ -136,11 +137,11 @@ ORGANIZED RESPONSE:""",
                 return True
         
         logger.warning("Knowledge base not found - using direct model responses")
-        return True  # Cambiado a True para permitir respuestas directas
+        return True  
     
     def ask_question(self, question: str, agent: str = "auto") -> Dict[str, Any]:
         """Answer using the appropriate agent"""
-        # Si no hay cadenas QA, usar respuesta directa del modelo
+        #If there's no QA chains, use model direct answer
         if not self.qa_chains:
             return self._direct_model_response(question, agent)
         
